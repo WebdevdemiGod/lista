@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
 import Logo from '@/components/Logo';
 import AddTodo from '@/components/AddTodo';
+import EditTodoModal from '@/components/EditTodoModal';
 import {
   Sheet,
   SheetContent,
@@ -29,9 +30,10 @@ const Todos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingTodo, setIsAddingTodo] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
   const filteredTodos = todos.filter(todo => 
-    todo.text.toLowerCase().includes(searchQuery.toLowerCase())
+    todo.text.toLowerCase().includes(searchQuery.toLowerCase()) && !todo.isCompleted
   );
 
   const toggleTodo = (id: number) => {
@@ -41,7 +43,27 @@ const Todos = () => {
   };
 
   const editTodo = (id: number) => {
-    navigate(`/todos/edit/${id}`);
+    const todo = todos.find(t => t.id === id);
+    if (todo) {
+      setEditingTodo(todo);
+    }
+  };
+
+  const handleSaveEdit = (id: number, text: string, date: Date) => {
+    setTodos(todos.map(todo =>
+      todo.id === id
+        ? {
+            ...todo,
+            text,
+            date: date.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })
+          }
+        : todo
+    ));
+    setEditingTodo(null);
   };
 
   const deleteTodo = (id: number) => {
@@ -53,10 +75,10 @@ const Todos = () => {
       id: Date.now(),
       text,
       isCompleted: false,
-      date: date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      date: date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       })
     };
     setTodos([...todos, newTodo]);
@@ -65,7 +87,7 @@ const Todos = () => {
   return (
     <div className="min-h-screen bg-white pb-20 relative">
       <header className="p-6 border-b border-gray-200 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Vincent Todo</h1>
+        <h1 className="text-xl font-semibold">Do Lista</h1>
         <Logo className="w-10 h-10" />
       </header>
       
@@ -93,7 +115,13 @@ const Todos = () => {
           />
         ))}
 
-        {filteredTodos.length === 0 && !searchQuery && (
+        {searchQuery && filteredTodos.length === 0 && (
+          <div className="text-center text-gray-500 mt-8">
+            No matches found
+          </div>
+        )}
+
+        {!searchQuery && filteredTodos.length === 0 && (
           <div className="text-center text-gray-500 mt-8">
             No todos yet. Add one below!
           </div>
@@ -123,6 +151,16 @@ const Todos = () => {
           </SheetContent>
         </Sheet>
       </div>
+      
+      {editingTodo && (
+        <EditTodoModal
+          isOpen={true}
+          onClose={() => setEditingTodo(null)}
+          todo={editingTodo}
+          onSave={handleSaveEdit}
+        />
+      )}
+      
       <BottomNav />
     </div>
   );
