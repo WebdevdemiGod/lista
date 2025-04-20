@@ -1,8 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import TodoItem from '@/components/TodoItem';
 import BottomNav from '@/components/BottomNav';
 import Logo from '@/components/Logo';
+
+interface Todo {
+  id: number;
+  text: string;
+  isCompleted: boolean;
+  date?: string;
+}
 
 const CompletedTodos = () => {
   const [completedTodos, setCompletedTodos] = useState<Todo[]>([]);
