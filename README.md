@@ -22,6 +22,6 @@ npm run dev
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+
 
 
