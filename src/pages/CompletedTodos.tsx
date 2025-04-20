@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TodoItem from '@/components/TodoItem';
 import BottomNav from '@/components/BottomNav';
 import Logo from '@/components/Logo';
@@ -14,9 +13,31 @@ interface Todo {
 const CompletedTodos = () => {
   const [completedTodos, setCompletedTodos] = useState<Todo[]>([]);
 
+  // Load completed todos from localStorage when component mounts
+  useEffect(() => {
+    const savedCompletedTodos = localStorage.getItem('completedTodos');
+    if (savedCompletedTodos) {
+      setCompletedTodos(JSON.parse(savedCompletedTodos));
+    }
+  }, []);
+
+  // Save completed todos to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('completedTodos', JSON.stringify(completedTodos));
+  }, [completedTodos]);
+
   const handleRestore = (id: number) => {
-    setCompletedTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
-    // You would also need to move this back to active todos in the parent component
+    // Find the todo we're restoring
+    const todoToRestore = completedTodos.find(todo => todo.id === id);
+    if (!todoToRestore) return;
+
+    // Move it to active todos
+    const activeTodos = JSON.parse(localStorage.getItem('activeTodos') || '[]');
+    const updatedTodo = { ...todoToRestore, isCompleted: false };
+    localStorage.setItem('activeTodos', JSON.stringify([...activeTodos, updatedTodo]));
+
+    // Remove from completed todos
+    setCompletedTodos(completedTodos.filter(todo => todo.id !== id));
   };
 
   const handleDelete = (id: number) => {

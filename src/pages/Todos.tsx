@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TodoItem from '@/components/TodoItem';
 import BottomNav from '@/components/BottomNav';
@@ -32,14 +31,42 @@ const Todos = () => {
   const [isAddingTodo, setIsAddingTodo] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
+  // Load todos from localStorage when component mounts
+  useEffect(() => {
+    const savedTodos = localStorage.getItem('activeTodos');
+    if (savedTodos) {
+      setTodos(JSON.parse(savedTodos));
+    }
+  }, []);
+
+  // Save todos to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('activeTodos', JSON.stringify(todos));
+  }, [todos]);
+
   const filteredTodos = todos.filter(todo => 
-    todo.text.toLowerCase().includes(searchQuery.toLowerCase()) && !todo.isCompleted
+    todo.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
-    ));
+    // Find the todo we're completing
+    const todoToToggle = todos.find(todo => todo.id === id);
+    if (!todoToToggle) return;
+
+    if (!todoToToggle.isCompleted) {
+      // If marking as complete, move to completed todos
+      const completedTodos = JSON.parse(localStorage.getItem('completedTodos') || '[]');
+      const updatedTodo = { ...todoToToggle, isCompleted: true };
+      localStorage.setItem('completedTodos', JSON.stringify([...completedTodos, updatedTodo]));
+      
+      // Remove from active todos
+      setTodos(todos.filter(todo => todo.id !== id));
+    } else {
+      // If marking as active, just update the state
+      setTodos(todos.map(todo => 
+        todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
+      ));
+    }
   };
 
   const editTodo = (id: number) => {
