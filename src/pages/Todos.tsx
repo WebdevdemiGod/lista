@@ -5,8 +5,17 @@ import TodoItem from '@/components/TodoItem';
 import BottomNav from '@/components/BottomNav';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Logo from '@/components/Logo';
+import AddTodo from '@/components/AddTodo';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface Todo {
   id: number;
@@ -17,13 +26,9 @@ interface Todo {
 
 const Todos = () => {
   const navigate = useNavigate();
-  const [todos, setTodos] = useState<Todo[]>([
-    { id: 1, text: 'Clean dog pooper', isCompleted: false, date: 'Jun 10, 2024' },
-    { id: 2, text: 'Clean dog pooper', isCompleted: true, date: 'Jun 10, 2024' },
-    { id: 3, text: 'Clean dog pooper', isCompleted: true, date: 'Jun 10, 2024' },
-  ]);
-
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddingTodo, setIsAddingTodo] = useState(false);
 
   const filteredTodos = todos.filter(todo => 
     todo.text.toLowerCase().includes(searchQuery.toLowerCase())
@@ -41,6 +46,20 @@ const Todos = () => {
 
   const deleteTodo = (id: number) => {
     setTodos(todos.filter(todo => todo.id !== id));
+  };
+
+  const addTodo = (text: string, date: Date) => {
+    const newTodo: Todo = {
+      id: Date.now(),
+      text,
+      isCompleted: false,
+      date: date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    };
+    setTodos([...todos, newTodo]);
   };
 
   return (
@@ -73,15 +92,36 @@ const Todos = () => {
             onDelete={() => deleteTodo(todo.id)}
           />
         ))}
+
+        {filteredTodos.length === 0 && !searchQuery && (
+          <div className="text-center text-gray-500 mt-8">
+            No todos yet. Add one below!
+          </div>
+        )}
       </div>
 
       <div className="fixed bottom-20 left-6 right-6">
-        <Button
-          onClick={() => navigate('/todos/add')}
-          className="w-full bg-[#7E69AB] hover:bg-[#6a5991] text-white py-3 rounded-lg"
-        >
-          Add a todo
-        </Button>
+        <Sheet open={isAddingTodo} onOpenChange={setIsAddingTodo}>
+          <SheetTrigger asChild>
+            <Button
+              className="w-full bg-[#7E69AB] hover:bg-[#6a5991] text-white py-3 rounded-lg"
+            >
+              Add a todo
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[400px]">
+            <SheetHeader>
+              <SheetTitle>Add New Todo</SheetTitle>
+              <SheetDescription>
+                Add a new task to your todo list
+              </SheetDescription>
+            </SheetHeader>
+            <AddTodo
+              onAdd={addTodo}
+              onClose={() => setIsAddingTodo(false)}
+            />
+          </SheetContent>
+        </Sheet>
       </div>
       <BottomNav />
     </div>
