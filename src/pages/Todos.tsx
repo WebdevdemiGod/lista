@@ -270,9 +270,7 @@ const Todos = () => {
             isCompleted={todo.status !== "active"}
             date={todo.timemodified}
             onToggle={() => toggleTodoStatus(todo.item_id, todo.status)}
-            onEdit={() => {
-              /* your edit handler */
-            }}
+            onEdit={() => editTodo(todo.item_id)}
             onDelete={() => deleteTodo(todo.item_id)}
           />
         ))}
