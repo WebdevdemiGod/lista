@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "@/components/Logo";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
-import { authApi } from "@/api/backendApi"; // <-- import your API client
+import { authApi } from "@/api/backendApi";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,8 +21,10 @@ const Login = () => {
       const response = await authApi.signIn({ email, password });
 
       if (response.status === 200 && response.data) {
-        // Handle successful login, e.g., save user info to context/state
-        console.log("Logged in user:", response.data);
+        // Remove sensitive info before storing
+
+        // Store user data as JSON string in localStorage
+        localStorage.setItem("user", JSON.stringify(response));
 
         navigate("/todos");
       } else {
