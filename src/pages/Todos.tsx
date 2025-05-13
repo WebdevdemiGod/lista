@@ -78,6 +78,15 @@ const Todos = () => {
     fetchTodos();
   }, []);
 
+  const handleTodoUpdated = (updatedTodo: Todo) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.item_id === updatedTodo.item_id ? updatedTodo : todo
+      )
+    );
+    setEditingTodo(null); // close the modal
+  };
+
   const filteredTodos = todos.filter((todo) =>
     todo.item_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -288,10 +297,10 @@ const Todos = () => {
 
       {editingTodo && (
         <EditTodoModal
-          isOpen={true}
+          isOpen={!!editingTodo}
           onClose={() => setEditingTodo(null)}
-          todo={editingTodo}
-          onSave={handleSaveEdit}
+          todo={editingTodo!}
+          onUpdated={handleTodoUpdated}
         />
       )}
 

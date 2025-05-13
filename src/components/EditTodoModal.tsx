@@ -43,16 +43,14 @@ const EditTodoModal = ({
   onUpdated,
 }: EditTodoModalProps) => {
   const [text, setText] = useState(todo.item_name);
-  // const [date, setDate] = useState<Date | undefined>(
-  //   todo.timemodified ? new Date(todo.timemodified) : undefined
-  // );
+  const [description, setDescription] = useState(todo.item_description || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Update local state when todo changes (important when editing different todos)
   useEffect(() => {
     setText(todo.item_name);
-    // setDate(todo.timemodified ? new Date(todo.timemodified) : undefined);
+    setDescription(todo.item_description || "");
     setError(null);
   }, [todo]);
 
@@ -74,7 +72,7 @@ const EditTodoModal = ({
       const payload = {
         item_id: todo.item_id,
         item_name: text,
-        // timemodified: date.toISOString(),
+        item_description: description,
         user_id,
       };
 
@@ -85,9 +83,21 @@ const EditTodoModal = ({
 
       const data = response.data;
 
-      if (data.status === 200 && data.data) {
-        // Notify parent about updated todo
-        onUpdated(data.data);
+      console.log(response?.data); // <-- log response
+
+      if (data.status === 200) {
+        // If backend returns updated todo:
+        if (data.data) {
+          onUpdated(data.data);
+        } else {
+          // If backend does not return updated todo, update locally:
+          onUpdated({
+            ...todo,
+            item_name: text,
+            item_description: description,
+            // optionally update timemodified if you want
+          });
+        }
         onClose();
       } else {
         setError(data.message || "Failed to update todo");
@@ -116,30 +126,12 @@ const EditTodoModal = ({
             />
           </div>
           <div className="grid gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                {/* <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                  disabled={loading}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button> */}
-              </PopoverTrigger>
-              {/* <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent> */}
-            </Popover>
+            <Input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Edit description (optional)"
+              disabled={loading}
+            />
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
