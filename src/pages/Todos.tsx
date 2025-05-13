@@ -39,6 +39,10 @@ const Todos = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [statusFilter, setStatusFilter] = useState<"active" | "inactive">(
+    "active"
+  );
+
   // Add Todo form state
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
@@ -55,7 +59,7 @@ const Todos = () => {
           import.meta.env.VITE_API_GET_TODO,
           {
             params: {
-              status: "active",
+              status: statusFilter,
               user_id: USER_ID,
             },
           }
@@ -68,7 +72,7 @@ const Todos = () => {
           setError(data.message || "Failed to fetch todos");
         }
       } catch (err) {
-        setError("Network error while fetching todos for: " + USER_ID);
+        setError("Network error while fetching todos");
         console.error(err);
       } finally {
         setLoading(false);
@@ -76,7 +80,7 @@ const Todos = () => {
     };
 
     fetchTodos();
-  }, []);
+  }, [statusFilter]); // refetch when statusFilter changes
 
   const handleTodoUpdated = (updatedTodo: Todo) => {
     setTodos((prevTodos) =>
@@ -183,8 +187,53 @@ const Todos = () => {
     }
   };
 
-  const deleteTodo = (id: number) => {
-    setTodos((prev) => prev.filter((todo) => todo.item_id !== id));
+  const toggleTodoStatus = async (item_id: number, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "active" ? "inactive" : "active";
+      const payload = {
+        status: newStatus,
+        item_id,
+      };
+
+      const response = await axiosInstance.put(
+        import.meta.env.VITE_API_UPDATE_STATUS, // set this in your .env to /statusItem_action.php
+        payload
+      );
+
+      const data = response.data;
+      if (data.status === 200) {
+        // Update local state
+        setTodos((prev) =>
+          prev.map((todo) =>
+            todo.item_id === item_id ? { ...todo, status: newStatus } : todo
+          )
+        );
+        console.log(data);
+      } else {
+        alert(data.message || "Failed to update status");
+      }
+    } catch (err) {
+      alert("Network error while updating status");
+      console.error(err);
+    }
+  };
+
+  const deleteTodo = async (item_id: number) => {
+    try {
+      const response = await axiosInstance.delete(
+        `${import.meta.env.VITE_API_DELETE_TODO}?item_id=${item_id}`
+      );
+      const data = response.data;
+      if (data.status === 200) {
+        // Remove the deleted todo from state
+        setTodos((prev) => prev.filter((todo) => todo.item_id !== item_id));
+      } else {
+        alert(data.message || "Failed to delete todo");
+      }
+    } catch (err) {
+      alert("Network error while deleting todo");
+      console.error(err);
+    }
   };
 
   return (
@@ -220,8 +269,10 @@ const Todos = () => {
             text={todo.item_name}
             isCompleted={todo.status !== "active"}
             date={todo.timemodified}
-            onToggle={() => toggleTodo(todo.item_id)}
-            onEdit={() => editTodo(todo.item_id)}
+            onToggle={() => toggleTodoStatus(todo.item_id, todo.status)}
+            onEdit={() => {
+              /* your edit handler */
+            }}
             onDelete={() => deleteTodo(todo.item_id)}
           />
         ))}
