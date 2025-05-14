@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import TodoItem from "@/components/TodoItem";
+import EditTodoModal from "@/components/EditTodoModal";
 import BottomNav from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -15,15 +16,28 @@ interface Todo {
   timemodified: string;
 }
 
-const userString = localStorage.getItem("user");
-const user = userString ? JSON.parse(userString) : null;
-const USER_ID = user?.data?.id; // or user?.user_id depending on your API response
+function getUpdatedUserFromLocalStorage() {
+  const userString = localStorage.getItem("user");
+  if (!userString) return null;
+
+  try {
+    return JSON.parse(userString);
+  } catch (error) {
+    console.error("Failed to parse user from localStorage:", error);
+    return null;
+  }
+}
 
 const CompletedTodos = () => {
+  const USER_ID = getUpdatedUserFromLocalStorage()?.data?.id;
   const [completedTodos, setCompletedTodos] = useState<Todo[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Editing state
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchCompletedTodos = async () => {
@@ -55,12 +69,81 @@ const CompletedTodos = () => {
     };
 
     fetchCompletedTodos();
-  }, []);
+  }, [USER_ID]);
+
+  // Delete todo function
+  const deleteTodo = async (item_id: number) => {
+    try {
+      const response = await axiosInstance.delete(
+        `${import.meta.env.VITE_API_DELETE_TODO}?item_id=${item_id}`
+      );
+      const data = response.data;
+      if (data.status === 200) {
+        setCompletedTodos((prev) =>
+          prev.filter((todo) => todo.item_id !== item_id)
+        );
+      } else {
+        alert(data.message || "Failed to delete todo");
+      }
+    } catch (err) {
+      alert("Network error while deleting todo");
+      console.error(err);
+    }
+  };
+
+  // Open edit modal for selected todo
+  const handleEditClick = (todo: Todo) => {
+    setEditingTodo(todo);
+    setIsEditModalOpen(true);
+  };
+
+  // Update todo in local state after edit
+  const handleTodoUpdated = (updatedTodo: Todo) => {
+    setCompletedTodos((prev) =>
+      prev.map((todo) =>
+        todo.item_id === updatedTodo.item_id ? updatedTodo : todo
+      )
+    );
+    setIsEditModalOpen(false);
+    setEditingTodo(null);
+  };
 
   // Filter by search query
   const filteredTodos = completedTodos.filter((todo) =>
     todo.item_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Add this toggle function inside CompletedTodos component
+
+  const toggleTodoStatus = async (item_id: number, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "active" ? "inactive" : "active";
+
+      const payload = {
+        status: newStatus, // note trailing space as per your API
+        item_id,
+      };
+
+      const response = await axiosInstance.put(
+        import.meta.env.VITE_API_UPDATE_STATUS,
+        payload
+      );
+      const data = response.data;
+
+      if (data.status === 200) {
+        // Remove the todo from completedTodos since it is now active
+        setCompletedTodos((prev) =>
+          prev.filter((todo) => todo.item_id !== item_id)
+        );
+        // Optionally, you can notify parent or refetch active todos so it appears in Todos.tsx
+      } else {
+        alert(data.message || "Failed to update todo status");
+      }
+    } catch (err) {
+      alert("Network error while updating todo status");
+      console.error(err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white pb-20 relative">
@@ -95,10 +178,9 @@ const CompletedTodos = () => {
             text={todo.item_name}
             isCompleted={true}
             date={todo.timemodified}
-            // You can add onToggle/onEdit/onDelete here if you want to allow actions on completed todos
-            onToggle={() => {}} // Optional: implement re-activate if desired
-            onEdit={() => {}} // Optional: implement edit if desired
-            onDelete={() => {}} // Optional: implement delete if desired
+            onToggle={() => toggleTodoStatus(todo.item_id, todo.status)} // <-- toggle status here
+            onEdit={() => handleEditClick(todo)}
+            onDelete={() => deleteTodo(todo.item_id)}
           />
         ))}
 
@@ -114,6 +196,16 @@ const CompletedTodos = () => {
       </div>
 
       <BottomNav />
+
+      {/* Edit Todo Modal */}
+      {editingTodo && (
+        <EditTodoModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          todo={editingTodo}
+          onUpdated={handleTodoUpdated}
+        />
+      )}
     </div>
   );
 };

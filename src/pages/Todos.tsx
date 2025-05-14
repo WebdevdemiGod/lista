@@ -26,10 +26,6 @@ interface Todo {
   timemodified: string;
 }
 
-const userString = localStorage.getItem("user");
-const user = userString ? JSON.parse(userString) : null;
-const USER_ID = user?.data?.id; // or user?.user_id depending on your API response
-
 const Todos = () => {
   const navigate = useNavigate();
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -42,6 +38,10 @@ const Todos = () => {
   const [statusFilter, setStatusFilter] = useState<"active" | "inactive">(
     "active"
   );
+
+  const userString = localStorage.getItem("user");
+  const user = userString ? JSON.parse(userString) : null;
+  const USER_ID = user?.data?.id; // or user?.user_id depending on your API response
 
   // Add Todo form state
   const [newItemName, setNewItemName] = useState("");
@@ -80,7 +80,7 @@ const Todos = () => {
     };
 
     fetchTodos();
-  }, [statusFilter]); // refetch when statusFilter changes
+  }, [statusFilter, USER_ID]); // refetch when statusFilter changes
 
   const handleTodoUpdated = (updatedTodo: Todo) => {
     setTodos((prevTodos) =>
