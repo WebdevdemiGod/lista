@@ -40,7 +40,7 @@ const Signup = () => {
       };
 
       const response = await axiosInstance.post(
-        import.meta.env.VITE_API_SIGN_UP,
+        "https://todo-list.dcism.org/signup_action.php",
         payload
       );
 

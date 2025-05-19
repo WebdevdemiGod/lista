@@ -125,7 +125,7 @@ const CompletedTodos = () => {
       };
 
       const response = await axiosInstance.put(
-        import.meta.env.VITE_API_UPDATE_STATUS,
+        "https://todo-list.dcism.org/statusItem_action.php",
         payload
       );
       const data = response.data;

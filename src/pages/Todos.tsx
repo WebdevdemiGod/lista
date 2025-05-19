@@ -15,7 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { axiosInstance } from "@/api/backendApi";
+import { axiosInstance, todoApi } from "@/api/backendApi";
 
 interface Todo {
   item_id: number;
@@ -56,7 +56,7 @@ const Todos = () => {
       setError(null);
       try {
         const response = await axiosInstance.get(
-          import.meta.env.VITE_API_GET_TODO,
+          "https://todo-list.dcism.org/getItems_action.php",
           {
             params: {
               status: statusFilter,
@@ -110,7 +110,7 @@ const Todos = () => {
       };
 
       const response = await axiosInstance.post(
-        import.meta.env.VITE_API_ADD_TODO,
+        "https://todo-list.dcism.org/addItem_action.php",
         payload
       );
       const data = response.data;
@@ -164,7 +164,7 @@ const Todos = () => {
       };
 
       const response = await axiosInstance.put(
-        import.meta.env.VITE_API_UPDATE_TODO,
+        "https://todo-list.dcism.org/editItem_action.php",
         payload
       );
       const data = response.data;
@@ -196,7 +196,7 @@ const Todos = () => {
       };
 
       const response = await axiosInstance.put(
-        import.meta.env.VITE_API_UPDATE_STATUS, // set this in your .env to /statusItem_action.php
+        "https://todo-list.dcism.org/statusItem_action.php",
         payload
       );
 
@@ -221,7 +221,8 @@ const Todos = () => {
   const deleteTodo = async (item_id: number) => {
     try {
       const response = await axiosInstance.delete(
-        `${import.meta.env.VITE_API_DELETE_TODO}?item_id=${item_id}`
+        "https://todo-list.dcism.org/deleteItem_action.php",
+        { params: { item_id } }
       );
       const data = response.data;
       if (data.status === 200) {
