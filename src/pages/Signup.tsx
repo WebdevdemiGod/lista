@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { Http } from "@capacitor-community/http";
+
 import Logo from "@/components/Logo";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
-import { axiosInstance } from "@/api/backendApi"; // <-- import from backendApi
+import { axiosInstance } from "@/api/backendApi";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -23,6 +26,7 @@ const Signup = () => {
       setError("First name and last name are required.");
       return;
     }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -30,26 +34,34 @@ const Signup = () => {
 
     setLoading(true);
 
+    const payload = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      password,
+      confirm_password: confirmPassword,
+    };
+
     try {
-      const payload = {
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        password: password,
-        confirm_password: confirmPassword,
-      };
+      const url = "https://todo-list.dcism.org/signup_action.php";
+      let response;
 
-      const response = await axiosInstance.post(
-        "https://todo-list.dcism.org/signup_action.php",
-        payload
-      );
+      if (Capacitor.getPlatform() === "web") {
+        const res = await axiosInstance.post(url, payload);
+        response = res.data;
+      } else {
+        const res = await Http.post({
+          url,
+          headers: { "Content-Type": "application/json" },
+          data: payload,
+        });
+        response = res.data;
+      }
 
-      const data = response.data;
-
-      if (data.status === 200) {
+      if (response.status === 200) {
         navigate("/login");
       } else {
-        setError(data.message || "Signup failed.");
+        setError(response.message || "Signup failed.");
       }
     } catch (err) {
       setError("Network error. Please try again.");

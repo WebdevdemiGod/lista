@@ -29,7 +29,7 @@ const Login = () => {
       } else {
         // Use Capacitor HTTP plugin in native
         const nativeResponse = await Http.get({
-          url: "https://todo-list.dcism.org/api/signin_action.php",
+          url: "https://todo-list.dcism.org/signin_action.php",
           params: { email, password },
         });
 
