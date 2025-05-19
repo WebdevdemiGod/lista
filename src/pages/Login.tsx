@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
+import { Http } from "@capacitor-community/http";
+
 import Logo from "@/components/Logo";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
@@ -18,14 +21,27 @@ const Login = () => {
     setError(null);
 
     try {
-      const response = await authApi.signIn({ email, password });
+      let response;
+
+      if (Capacitor.getPlatform() === "web") {
+        // Use Axios in web
+        response = await authApi.signIn({ email, password });
+      } else {
+        // Use Capacitor HTTP plugin in native
+        const nativeResponse = await Http.get({
+          url: "https://todo-list.dcism.org/signin_action.php",
+          params: { email, password },
+        });
+
+        response = {
+          status: nativeResponse.status,
+          data: nativeResponse.data,
+          message: nativeResponse.data?.message || "",
+        };
+      }
 
       if (response.status === 200 && response.data) {
-        // Remove sensitive info before storing
-
-        // Store user data as JSON string in localStorage
         localStorage.setItem("user", JSON.stringify(response));
-
         navigate("/todos");
       } else {
         setError(response.message || "Invalid email or password");
