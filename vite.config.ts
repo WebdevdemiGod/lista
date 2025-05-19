@@ -5,15 +5,6 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  server: {
-    proxy: {
-      "/api": {
-        target: "https://todo-list.dcism.org",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
-  },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean
   ),

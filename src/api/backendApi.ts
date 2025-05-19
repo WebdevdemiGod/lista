@@ -12,8 +12,12 @@ import {
   UpdateTodoStatusPayload,
 } from "../types";
 
+// Base API URL
+const BASE_URL = "https://todo-list.dcism.org/";
+
 // Axios instance with default headers
 export const axiosInstance = axios.create({
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,7 +27,7 @@ export const axiosInstance = axios.create({
 export const authApi = {
   signUp: async (payload: SignupPayload): Promise<ApiResponse> => {
     const response = await axiosInstance.post<ApiResponse>(
-      import.meta.env.VITE_API_SIGN_UP,
+      "signup_action.php",
       payload
     );
     return response.data;
@@ -31,7 +35,7 @@ export const authApi = {
 
   signIn: async (params: SigninParams): Promise<SigninResponse> => {
     const response = await axiosInstance.get<SigninResponse>(
-      import.meta.env.VITE_API_SIGN_IN,
+      "signin_action.php",
       { params }
     );
     return response.data;
@@ -45,7 +49,7 @@ export const todoApi = {
     user_id: number
   ): Promise<GetTodoResponse> => {
     const response = await axiosInstance.get<GetTodoResponse>(
-      import.meta.env.VITE_API_GET_TODO,
+      "getItems_action.php",
       { params: { status, user_id } }
     );
     return response.data;
@@ -53,7 +57,7 @@ export const todoApi = {
 
   addItem: async (payload: AddTodoPayload): Promise<AddTodoResponse> => {
     const response = await axiosInstance.post<AddTodoResponse>(
-      import.meta.env.VITE_API_ADD_TODO,
+      "addItem_action.php",
       payload
     );
     return response.data;
@@ -61,7 +65,7 @@ export const todoApi = {
 
   updateItem: async (payload: UpdateTodoPayload): Promise<ApiResponse> => {
     const response = await axiosInstance.put<ApiResponse>(
-      import.meta.env.VITE_API_UPDATE_TODO,
+      "editItem_action.php",
       payload
     );
     return response.data;
@@ -71,7 +75,7 @@ export const todoApi = {
     payload: UpdateTodoStatusPayload
   ): Promise<ApiResponse> => {
     const response = await axiosInstance.put<ApiResponse>(
-      import.meta.env.VITE_API_UPDATE_STATUS,
+      "statusItem_action.php",
       payload
     );
     return response.data;
@@ -79,7 +83,7 @@ export const todoApi = {
 
   deleteItem: async (item_id: number): Promise<ApiResponse> => {
     const response = await axiosInstance.delete<ApiResponse>(
-      import.meta.env.VITE_API_DELETE_TODO,
+      "deleteItem_action.php",
       { params: { item_id } }
     );
     return response.data;
