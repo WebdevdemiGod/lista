@@ -13,32 +13,35 @@ import {
 } from "../types";
 
 // Base API URL
+// Remove axios import and instance
 const BASE_URL = "https://todo-list.dcism.org/";
-
-// Axios instance with default headers
-export const axiosInstance = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // Auth API
 export const authApi = {
   signUp: async (payload: SignupPayload): Promise<ApiResponse> => {
-    const response = await axiosInstance.post<ApiResponse>(
-      "signup_action.php",
-      payload
-    );
-    return response.data;
+    const response = await fetch(`${BASE_URL}signup_action.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    return response.json();
   },
 
   signIn: async (params: SigninParams): Promise<SigninResponse> => {
-    const response = await axiosInstance.get<SigninResponse>(
-      "signin_action.php",
-      { params }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const queryString = new URLSearchParams(params as any).toString();
+    const response = await fetch(
+      `${BASE_URL}signin_action.php?${queryString}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-    return response.data;
+    return response.json();
   },
 };
 
@@ -48,44 +51,67 @@ export const todoApi = {
     status: "active" | "inactive",
     user_id: number
   ): Promise<GetTodoResponse> => {
-    const response = await axiosInstance.get<GetTodoResponse>(
-      "getItems_action.php",
-      { params: { status, user_id } }
+    const queryString = new URLSearchParams({
+      status,
+      user_id: user_id.toString(),
+    }).toString();
+    const response = await fetch(
+      `${BASE_URL}getItems_action.php?${queryString}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-    return response.data;
+    return response.json();
   },
 
   addItem: async (payload: AddTodoPayload): Promise<AddTodoResponse> => {
-    const response = await axiosInstance.post<AddTodoResponse>(
-      "addItem_action.php",
-      payload
-    );
-    return response.data;
+    const response = await fetch(`${BASE_URL}addItem_action.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    return response.json();
   },
 
   updateItem: async (payload: UpdateTodoPayload): Promise<ApiResponse> => {
-    const response = await axiosInstance.put<ApiResponse>(
-      "editItem_action.php",
-      payload
-    );
-    return response.data;
+    const response = await fetch(`${BASE_URL}editItem_action.php`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    return response.json();
   },
 
   updateStatus: async (
     payload: UpdateTodoStatusPayload
   ): Promise<ApiResponse> => {
-    const response = await axiosInstance.put<ApiResponse>(
-      "statusItem_action.php",
-      payload
-    );
-    return response.data;
+    const response = await fetch(`${BASE_URL}statusItem_action.php`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    return response.json();
   },
 
   deleteItem: async (item_id: number): Promise<ApiResponse> => {
-    const response = await axiosInstance.delete<ApiResponse>(
-      "deleteItem_action.php",
-      { params: { item_id } }
+    const response = await fetch(
+      `${BASE_URL}deleteItem_action.php?item_id=${item_id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-    return response.data;
+    return response.json();
   },
 };

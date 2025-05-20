@@ -1,16 +1,14 @@
 
 import React, { useState } from 'react';
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar as CalendarIcon } from "lucide-react";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface AddTodoProps {
   onAdd: (text: string, date: Date) => void;
@@ -19,61 +17,93 @@ interface AddTodoProps {
 
 const AddTodo = ({ onAdd, onClose }: AddTodoProps) => {
   const [text, setText] = useState('');
-  const [date, setDate] = useState<Date>();
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (text.trim() && date) {
-      onAdd(text, date);
-      setText('');
-      setDate(undefined);
-      onClose();
+    if (!text.trim()) {
+      setError("Please enter a todo name.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const userString = localStorage.getItem("user");
+      const user = userString ? JSON.parse(userString) : null;
+      const USER_ID = user?.data?.id;
+
+      const payload = {
+        item_name: text.trim(),
+        item_description: description.trim(),
+        user_id: USER_ID,
+      };
+
+      const response = await fetch("https://todo-list.dcism.org/addItem_action.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (data.status === 200) {
+        setText('');
+        setDescription('');
+        onClose();
+      } else {
+        setError(data.message || "Failed to add todo");
+      }
+    } catch (err) {
+      setError("Network error while adding todo");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4">
-      <Input
-        type="text"
-        placeholder="What needs to be done?"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-full"
-      />
-      <div className="flex flex-col gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add New Todo</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="What needs to be done?"
+                disabled={loading}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add description (optional)"
+                disabled={loading}
+              />
+            </div>
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={onClose} variant="outline" disabled={loading}>
+              Cancel
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              initialFocus
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" className="bg-[#7E69AB] hover:bg-[#6a5991]">
-          Add Todo
-        </Button>
-      </div>
-    </form>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Adding..." : "Add Todo"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
