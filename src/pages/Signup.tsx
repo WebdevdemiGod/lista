@@ -6,7 +6,6 @@ import { Http } from "@capacitor-community/http";
 import Logo from "@/components/Logo";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
-import { axiosInstance } from "@/api/backendApi";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -43,25 +42,23 @@ const Signup = () => {
     };
 
     try {
-      const url = "https://todo-list.dcism.org/signup_action.php";
-      let response;
+      const response = await fetch(
+        "https://todo-list.dcism.org/signup_action.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      if (Capacitor.getPlatform() === "web") {
-        const res = await axiosInstance.post(url, payload);
-        response = res.data;
-      } else {
-        const res = await Http.post({
-          url,
-          headers: { "Content-Type": "application/json" },
-          data: payload,
-        });
-        response = res.data;
-      }
+      const data = await response.json();
 
-      if (response.status === 200) {
+      if (data.status === 200) {
         navigate("/login");
       } else {
-        setError(response.message || "Signup failed.");
+        setError(data.message || "Signup failed.");
       }
     } catch (err) {
       setError("Network error. Please try again.");
