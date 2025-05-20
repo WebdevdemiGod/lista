@@ -67,9 +67,15 @@ const CompletedTodos = () => {
   const deleteTodo = async (item_id: number) => {
     try {
       const response = await fetch(
-        `https://todo-list.dcism.org/deleteItem_action.php?item_id=${item_id}`,
+        `https://todo-list.dcism.org/deleteItem_action.php`,
         {
           method: "DELETE",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            item_id: item_id.toString(),
+          }).toString(),
         }
       );
       const data = await response.json();
@@ -81,7 +87,7 @@ const CompletedTodos = () => {
         alert(data.message || "Failed to delete todo");
       }
     } catch (err) {
-      alert("Network error while deleting todo");
+      alert("Network error while deleting todo" + err);
       console.error(err);
     }
   };
@@ -139,7 +145,7 @@ const CompletedTodos = () => {
         alert(data.message || "Failed to update todo status");
       }
     } catch (err) {
-      alert("Network error while updating todo status");
+      alert("Network error while updating todo status" + err);
       console.error(err);
     }
   };

@@ -181,7 +181,7 @@ const Todos = () => {
         alert(data.message || "Failed to update status");
       }
     } catch (err) {
-      alert("Network error while updating status");
+      alert("Network error while updating status" + err);
       console.error(err);
     }
   };
