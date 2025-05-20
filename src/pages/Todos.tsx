@@ -15,7 +15,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { axiosInstance, todoApi } from "@/api/backendApi";
 
 interface Todo {
   item_id: number;
@@ -55,16 +54,10 @@ const Todos = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axiosInstance.get(
-          "https://todo-list.dcism.org/getItems_action.php",
-          {
-            params: {
-              status: statusFilter,
-              user_id: USER_ID,
-            },
-          }
+        const response = await fetch(
+          `https://todo-list.dcism.org/getItems_action.php?status=${statusFilter}&user_id=${USER_ID}`
         );
-        const data = response.data;
+        const data = await response.json();
         if (data.status === 200 && data.data) {
           const todosArray: Todo[] = Object.values(data.data);
           setTodos(todosArray);
@@ -80,7 +73,7 @@ const Todos = () => {
     };
 
     fetchTodos();
-  }, [statusFilter, USER_ID]); // refetch when statusFilter changes
+  }, [statusFilter, USER_ID]);
 
   const handleTodoUpdated = (updatedTodo: Todo) => {
     setTodos((prevTodos) =>
@@ -109,11 +102,17 @@ const Todos = () => {
         user_id: USER_ID,
       };
 
-      const response = await axiosInstance.post(
+      const response = await fetch(
         "https://todo-list.dcism.org/addItem_action.php",
-        payload
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
       );
-      const data = response.data;
+      const data = await response.json();
 
       if (data.status === 200 && data.data) {
         setTodos((prev) => [...prev, data.data]);
@@ -151,42 +150,6 @@ const Todos = () => {
     }
   };
 
-  const handleSaveEdit = async (id: number, text: string, date: Date) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = {
-        item_id: id,
-        item_name: text,
-        timemodified: date.toISOString(),
-        user_id: USER_ID,
-        // You may want to send item_description too if you allow editing it
-      };
-
-      const response = await axiosInstance.put(
-        "https://todo-list.dcism.org/editItem_action.php",
-        payload
-      );
-      const data = response.data;
-
-      if (data.status === 200 && data.data) {
-        setTodos((prev) =>
-          prev.map((todo) =>
-            todo.item_id === id ? { ...todo, ...data.data } : todo
-          )
-        );
-        setEditingTodo(null);
-      } else {
-        setError(data.message || "Failed to update todo");
-      }
-    } catch (err) {
-      setError("Network error while updating todo");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const toggleTodoStatus = async (item_id: number, currentStatus: string) => {
     try {
       const newStatus = currentStatus === "active" ? "inactive" : "active";
@@ -195,14 +158,19 @@ const Todos = () => {
         item_id,
       };
 
-      const response = await axiosInstance.put(
+      const response = await fetch(
         "https://todo-list.dcism.org/statusItem_action.php",
-        payload
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
       );
 
-      const data = response.data;
+      const data = await response.json();
       if (data.status === 200) {
-        // Update local state
         setTodos((prev) =>
           prev.map((todo) =>
             todo.item_id === item_id ? { ...todo, status: newStatus } : todo
@@ -220,13 +188,14 @@ const Todos = () => {
 
   const deleteTodo = async (item_id: number) => {
     try {
-      const response = await axiosInstance.delete(
-        "https://todo-list.dcism.org/deleteItem_action.php",
-        { params: { item_id } }
+      const response = await fetch(
+        `https://todo-list.dcism.org/deleteItem_action.php?item_id=${item_id}`,
+        {
+          method: "DELETE",
+        }
       );
-      const data = response.data;
+      const data = await response.json();
       if (data.status === 200) {
-        // Remove the deleted todo from state
         setTodos((prev) => prev.filter((todo) => todo.item_id !== item_id));
       } else {
         alert(data.message || "Failed to delete todo");

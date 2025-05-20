@@ -10,14 +10,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { axiosInstance } from "@/api/backendApi"; // Import axiosInstance
 
 interface Todo {
   item_id: number;
@@ -64,10 +56,9 @@ const EditTodoModal = ({
     setError(null);
 
     try {
-      // Get user info from localStorage
       const userString = localStorage.getItem("user");
       const user = userString ? JSON.parse(userString) : null;
-      const user_id = user?.id || todo.user_id; // fallback to todo.user_id
+      const user_id = user?.id || todo.user_id;
 
       const payload = {
         item_id: todo.item_id,
@@ -76,26 +67,24 @@ const EditTodoModal = ({
         user_id,
       };
 
-      const response = await axiosInstance.put(
-        import.meta.env.VITE_API_UPDATE_TODO,
-        payload
-      );
+      const response = await fetch("https://todo-list.dcism.org/editItem_action.php", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-      const data = response.data;
-
-      console.log(response?.data); // <-- log response
+      const data = await response.json();
 
       if (data.status === 200) {
-        // If backend returns updated todo:
         if (data.data) {
           onUpdated(data.data);
         } else {
-          // If backend does not return updated todo, update locally:
           onUpdated({
             ...todo,
             item_name: text,
             item_description: description,
-            // optionally update timemodified if you want
           });
         }
         onClose();

@@ -5,7 +5,6 @@ import BottomNav from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import Logo from "@/components/Logo";
-import { axiosInstance } from "@/api/backendApi";
 
 interface Todo {
   item_id: number;
@@ -44,16 +43,10 @@ const CompletedTodos = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axiosInstance.get(
-          import.meta.env.VITE_API_GET_TODO,
-          {
-            params: {
-              status: "inactive",
-              user_id: USER_ID,
-            },
-          }
+        const response = await fetch(
+          `https://todo-list.dcism.org/getItems_action.php?status=inactive&user_id=${USER_ID}`
         );
-        const data = response.data;
+        const data = await response.json();
         if (data.status === 200 && data.data) {
           const todosArray: Todo[] = Object.values(data.data);
           setCompletedTodos(todosArray);
@@ -71,13 +64,15 @@ const CompletedTodos = () => {
     fetchCompletedTodos();
   }, [USER_ID]);
 
-  // Delete todo function
   const deleteTodo = async (item_id: number) => {
     try {
-      const response = await axiosInstance.delete(
-        `${import.meta.env.VITE_API_DELETE_TODO}?item_id=${item_id}`
+      const response = await fetch(
+        `https://todo-list.dcism.org/deleteItem_action.php?item_id=${item_id}`,
+        {
+          method: "DELETE",
+        }
       );
-      const data = response.data;
+      const data = await response.json();
       if (data.status === 200) {
         setCompletedTodos((prev) =>
           prev.filter((todo) => todo.item_id !== item_id)
@@ -120,22 +115,26 @@ const CompletedTodos = () => {
       const newStatus = currentStatus === "active" ? "inactive" : "active";
 
       const payload = {
-        status: newStatus, // note trailing space as per your API
+        status: newStatus,
         item_id,
       };
 
-      const response = await axiosInstance.put(
+      const response = await fetch(
         "https://todo-list.dcism.org/statusItem_action.php",
-        payload
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
       );
-      const data = response.data;
+      const data = await response.json();
 
       if (data.status === 200) {
-        // Remove the todo from completedTodos since it is now active
         setCompletedTodos((prev) =>
           prev.filter((todo) => todo.item_id !== item_id)
         );
-        // Optionally, you can notify parent or refetch active todos so it appears in Todos.tsx
       } else {
         alert(data.message || "Failed to update todo status");
       }
