@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
-import { Http } from "@capacitor-community/http";
-
 import Logo from "@/components/Logo";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
-import { authApi } from "@/api/backendApi";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,30 +17,25 @@ const Login = () => {
     setError(null);
 
     try {
-      let response;
+      const response = await fetch(
+        `https://todo-list.dcism.org/signin_action.php?email=${encodeURIComponent(
+          email
+        )}&password=${encodeURIComponent(password)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      if (Capacitor.getPlatform() === "web") {
-        // Use Axios in web
-        response = await authApi.signIn({ email, password });
-      } else {
-        // Use Capacitor HTTP plugin in native
-        const nativeResponse = await Http.get({
-          url: "https://todo-list.dcism.org/signin_action.php",
-          params: { email, password },
-        });
+      const data = await response.json();
 
-        response = {
-          status: nativeResponse.status,
-          data: nativeResponse.data,
-          message: nativeResponse.data?.message || "",
-        };
-      }
-
-      if (response.status === 200 && response.data) {
-        localStorage.setItem("user", JSON.stringify(response));
+      if (data.status === 200 && data.data) {
+        localStorage.setItem("user", JSON.stringify(data));
         navigate("/todos");
       } else {
-        setError(response.message || "Invalid email or password");
+        setError(data.message || "Invalid email or password");
       }
     } catch (err) {
       setError("Network error. Please try again.");

@@ -1,8 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
-import { Http } from "@capacitor-community/http";
-
 import Logo from "@/components/Logo";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
@@ -33,36 +30,31 @@ const Signup = () => {
 
     setLoading(true);
 
-    const payload = {
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      password,
-      confirm_password: confirmPassword,
-    };
-
     try {
-      const response = await fetch(
-        "https://todo-list.dcism.org/signup_action.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch("https://todo-list.dcism.org/signup_action.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          email: email.trim(),
+          password,
+          confirm_password: confirmPassword,
+        }),
+      });
 
       const data = await response.json();
 
       if (data.status === 200) {
         navigate("/login");
       } else {
-        setError(data.message || "Signup failed.");
+        setError(data.message || "Signup failed. Please try again.");
       }
     } catch (err) {
       setError("Network error. Please try again.");
-      console.error("Signup error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -121,7 +113,7 @@ const Signup = () => {
           onClick={() => navigate("/login")}
           className="w-full border-[#7E69AB] text-[#7E69AB] py-3 rounded-lg"
         >
-          Sign in
+          Back to Login
         </Button>
       </form>
     </div>
