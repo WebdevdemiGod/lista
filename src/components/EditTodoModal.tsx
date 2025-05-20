@@ -70,7 +70,7 @@ const EditTodoModal = ({
       const response = await fetch(
         "https://todo-list.dcism.org/editItem_action.php",
         {
-          method: "PUT",
+          method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
@@ -95,8 +95,9 @@ const EditTodoModal = ({
         setError(data.message || "Failed to update todo");
       }
     } catch (err) {
-      setError("Network error while updating todo" + err);
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Network error while updating todo: ${errorMessage}`);
+      console.error("Edit todo error:", err);
     } finally {
       setLoading(false);
     }

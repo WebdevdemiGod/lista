@@ -69,7 +69,7 @@ const CompletedTodos = () => {
       const response = await fetch(
         `https://todo-list.dcism.org/deleteItem_action.php`,
         {
-          method: "DELETE",
+          method: "POST", // Changed from DELETE to POST
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
@@ -84,11 +84,13 @@ const CompletedTodos = () => {
           prev.filter((todo) => todo.item_id !== item_id)
         );
       } else {
-        alert(data.message || "Failed to delete todo");
+        const errorMessage = data.message || "Failed to delete todo";
+        alert(errorMessage);
       }
     } catch (err) {
-      alert("Network error while deleting todo" + err);
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      alert(`Network error while deleting todo: ${errorMessage}`);
+      console.error("Delete todo error:", err);
     }
   };
 
@@ -128,7 +130,7 @@ const CompletedTodos = () => {
       const response = await fetch(
         "https://todo-list.dcism.org/statusItem_action.php",
         {
-          method: "PUT",
+          method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
@@ -145,8 +147,9 @@ const CompletedTodos = () => {
         alert(data.message || "Failed to update todo status");
       }
     } catch (err) {
-      alert("Network error while updating todo status" + err);
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      alert(`Network error while updating todo status: ${errorMessage}`);
+      console.error("Toggle todo status error:", err);
     }
   };
 

@@ -80,7 +80,7 @@ export const todoApi = {
 
   updateItem: async (payload: UpdateTodoPayload): Promise<ApiResponse> => {
     const response = await fetch(`${BASE_URL}editItem_action.php`, {
-      method: "PUT",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },

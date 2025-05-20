@@ -161,7 +161,7 @@ const Todos = () => {
       const response = await fetch(
         "https://todo-list.dcism.org/statusItem_action.php",
         {
-          method: "PUT",
+          method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
@@ -191,7 +191,7 @@ const Todos = () => {
       const response = await fetch(
         `https://todo-list.dcism.org/deleteItem_action.php?item_id=${item_id}`,
         {
-          method: "DELETE",
+          method: "POST",
         }
       );
       const data = await response.json();
