@@ -34,7 +34,7 @@ const Signup = () => {
       const response = await fetch("https://todo-list.dcism.org/signup_action.php", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: JSON.stringify({
           first_name: firstName.trim(),

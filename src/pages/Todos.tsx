@@ -163,7 +163,7 @@ const Todos = () => {
         {
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
           },
           body: JSON.stringify(payload),
         }

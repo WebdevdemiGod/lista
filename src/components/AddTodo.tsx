@@ -45,7 +45,7 @@ const AddTodo = ({ onAdd, onClose }: AddTodoProps) => {
       const response = await fetch("https://todo-list.dcism.org/addItem_action.php", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: JSON.stringify(payload),
       });

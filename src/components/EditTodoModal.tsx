@@ -70,7 +70,7 @@ const EditTodoModal = ({
       const response = await fetch("https://todo-list.dcism.org/editItem_action.php", {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: JSON.stringify(payload),
       });
