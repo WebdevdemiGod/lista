@@ -291,7 +291,7 @@ const Todos = () => {
               />
               <Input
                 type="text"
-                placeholder="Item Description (optional)"
+                placeholder="Item Description"
                 value={newItemDescription}
                 onChange={(e) => setNewItemDescription(e.target.value)}
               />

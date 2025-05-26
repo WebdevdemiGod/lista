@@ -122,7 +122,7 @@ const EditTodoModal = ({
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Edit description (optional)"
+              placeholder="Edit description"
               disabled={loading}
             />
           </div>
